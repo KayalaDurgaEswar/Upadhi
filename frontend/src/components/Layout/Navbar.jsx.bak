@@ -31,7 +31,7 @@ const Navbar = () => {
     <nav className={isAuthorized ? "navbarShow" : "navbarHide"}>
       <div className="container">
         <div className="logo">
-          <img src="/Upadhi-logo.png" alt="Upadhi Logo" />
+          <img src="/Upadhi-navbar-logo.svg" alt="Upadhi Logo" />
           <span className="logo-text">Upadhi</span>
         </div>
         <ul className={!show ? "menu" : "show-menu menu"}>

@@ -46,8 +46,8 @@ const Login = () => {
       <section className="authPage">
         <div className="container">
           <div className="header">
-            <img src="/careerconnect-black.png" alt="logo" />
             <h3>Login to your account</h3>
+            <img src="/Upadhi-logo.png" alt="Upadhi Logo" />
           </div>
           <form>
             <div className="inputTag">
@@ -91,9 +91,6 @@ const Login = () => {
             </button>
             <Link to={"/register"}>Register Now</Link>
           </form>
-        </div>
-        <div className="banner">
-          <img src="/login.png" alt="login" />
         </div>
       </section>
     </>

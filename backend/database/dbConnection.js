@@ -7,9 +7,9 @@ dotenv.config()
     mongoose.connect(process.env.DB_URL,{
        dbName: "Job_Portal"
 
-    }).then(()=>{ //agar connect ho jaye toh!
+    }).then(()=>{ //connect aipothe
        console.log("MongoDB Connected Sucessfully !")
-    }).catch((error)=>{
+    }).catch((error)=>{ // connect avvakapothe
         console.log(`Failed to connect ${error}`)
     })
     

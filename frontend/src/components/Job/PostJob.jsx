@@ -76,7 +76,7 @@ const PostJob = () => {
     <>
       <div className="job_post page">
         <div className="container">
-          <h3>POST NEW JOB</h3>
+          <h1>POST NEW JOB</h1>
           <form onSubmit={handleJobPost}>
             <div className="wrapper">
               <input

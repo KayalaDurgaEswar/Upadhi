@@ -53,8 +53,8 @@ const Register = () => {
       <section className="authPage">
         <div className="container">
           <div className="header">
-            <img src="/careerconnect-black.png" alt="logo" />
-            <h3>Create a new account</h3>
+            <h3>Register your account</h3>
+            <img src="/Upadhi-logo.png" alt="Upadhi Logo" />
           </div>
           <form>
             <div className="inputTag">
@@ -121,9 +121,6 @@ const Register = () => {
             </button>
             <Link to={"/login"}>Login Now</Link>
           </form>
-        </div>
-        <div className="banner">
-          <img src="/register.png" alt="login" />
         </div>
       </section>
     </>

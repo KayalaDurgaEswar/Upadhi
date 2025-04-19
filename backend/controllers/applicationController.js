@@ -1,10 +1,16 @@
+// this is applicationController.js
 import { catchAsyncErrors } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Application } from "../models/applicationSchema.js";
 import { Job } from "../models/jobSchema.js";
 import cloudinary from "cloudinary";
+import path from "path";
 
 export const postApplication = catchAsyncErrors(async (req, res, next) => {
+  console.log("========== APPLICATION SUBMISSION STARTED ==========");
+  console.log("Request body:", req.body);
+  console.log("Files received:", req.files ? Object.keys(req.files) : "No files");
+
   const { role } = req.user;
   if (role === "Employer") {
     return next(
@@ -16,70 +22,111 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
   }
 
   const { resume } = req.files;
-  const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
-  if (!allowedFormats.includes(resume.mimetype)) {
+  
+  // Enhanced file information logging
+  console.log("============ FILE UPLOAD DETAILS ============");
+  console.log("File MIME type:", resume.mimetype);
+  console.log("File name:", resume.name);
+  console.log("File size:", resume.size);
+  console.log("File tempFilePath:", resume.tempFilePath);
+  
+  // Get file extension
+  const fileExt = path.extname(resume.name).toLowerCase();
+  console.log("File extension:", fileExt);
+  
+  // Accept files based on extension if MIME type detection fails
+  const allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.webp'];
+  const allowedMimeTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
+  
+  if (!allowedMimeTypes.includes(resume.mimetype) && !allowedExtensions.includes(fileExt)) {
     return next(
-      new ErrorHandler("Invalid file type. Please upload a PNG file.", 400)
+      new ErrorHandler(`Invalid file type (${resume.mimetype}, ${fileExt}). Please upload a PNG, JPG, or PDF file.`, 400)
     );
   }
-  const cloudinaryResponse = await cloudinary.uploader.upload(
-    resume.tempFilePath
-  );
+  
+  try {
+    console.log("Starting Cloudinary upload...");
+    
+    // Special handling for PDF files
+    let cloudinaryResponse;
+    if (fileExt === '.pdf' || resume.mimetype === 'application/pdf') {
+      console.log("Detected PDF file, using appropriate resource_type");
+      cloudinaryResponse = await cloudinary.uploader.upload(
+        resume.tempFilePath,
+        {
+          resource_type: "auto",
+          folder: "resumes"
+        }
+      );
+    } else {
+      // For images
+      cloudinaryResponse = await cloudinary.uploader.upload(
+        resume.tempFilePath,
+        {
+          resource_type: "image",
+          folder: "resumes"
+        }
+      );
+    }
+    
+    console.log("Cloudinary upload result:", cloudinaryResponse.secure_url);
 
-  if (!cloudinaryResponse || cloudinaryResponse.error) {
-    console.error(
-      "Cloudinary Error:",
-      cloudinaryResponse.error || "Unknown Cloudinary error"
-    );
-    return next(new ErrorHandler("Failed to upload Resume to Cloudinary", 500));
-  }
-  const { name, email, coverLetter, phone, address, jobId } = req.body;
-  const applicantID = {
-    user: req.user._id,
-    role: "Job Seeker",
-  };
-  if (!jobId) {
-    return next(new ErrorHandler("Job not found!", 404));
-  }
-  const jobDetails = await Job.findById(jobId);
-  if (!jobDetails) {
-    return next(new ErrorHandler("Job not found!", 404));
-  }
+    if (!cloudinaryResponse || cloudinaryResponse.error) {
+      console.error("Cloudinary Error:", cloudinaryResponse.error || "Unknown Cloudinary error");
+      return next(new ErrorHandler("Failed to upload Resume to Cloudinary", 500));
+    }
+    
+    const { name, email, coverLetter, phone, address, jobId } = req.body;
+    const applicantID = {
+      user: req.user._id,
+      role: "Job Seeker",
+    };
+    if (!jobId) {
+      return next(new ErrorHandler("Job not found!", 404));
+    }
+    const jobDetails = await Job.findById(jobId);
+    if (!jobDetails) {
+      return next(new ErrorHandler("Job not found!", 404));
+    }
 
-  const employerID = {
-    user: jobDetails.postedBy,
-    role: "Employer",
-  };
-  if (
-    !name ||
-    !email ||
-    !coverLetter ||
-    !phone ||
-    !address ||
-    !applicantID ||
-    !employerID ||
-    !resume
-  ) {
-    return next(new ErrorHandler("Please fill all fields.", 400));
+    const employerID = {
+      user: jobDetails.postedBy,
+      role: "Employer",
+    };
+    if (
+      !name ||
+      !email ||
+      !coverLetter ||
+      !phone ||
+      !address ||
+      !applicantID ||
+      !employerID ||
+      !resume
+    ) {
+      return next(new ErrorHandler("Please fill all fields.", 400));
+    }
+    const application = await Application.create({
+      name,
+      email,
+      coverLetter,
+      phone,
+      address,
+      applicantID,
+      employerID,
+      resume: {
+        public_id: cloudinaryResponse.public_id,
+        url: cloudinaryResponse.secure_url,
+      },
+    });
+    res.status(200).json({
+      success: true,
+      message: "Application Submitted!",
+      application,
+    });
+  } catch (error) {
+    console.error("Application submission error:", error);
+    return next(new ErrorHandler(`Upload failed: ${error.message}`, 500));
   }
-  const application = await Application.create({
-    name,
-    email,
-    coverLetter,
-    phone,
-    address,
-    applicantID,
-    employerID,
-    resume: {
-      public_id: cloudinaryResponse.public_id,
-      url: cloudinaryResponse.secure_url,
-    },
-  });
-  res.status(200).json({
-    success: true,
-    message: "Application Submitted!",
-    application,
-  });
 });
 
 export const employerGetAllApplications = catchAsyncErrors(

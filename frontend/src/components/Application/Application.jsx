@@ -3,6 +3,7 @@ import React, { useContext, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context } from "../../main";
+
 const Application = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,18 +13,22 @@ const Application = () => {
   const [resume, setResume] = useState(null);
 
   const { isAuthorized, user } = useContext(Context);
-
   const navigateTo = useNavigate();
+  const { id } = useParams();
 
-  // Function to handle file input changes
   const handleFileChange = (event) => {
-    const resume = event.target.files[0];
-    setResume(resume);
+    const file = event.target.files[0];
+    setResume(file);
   };
 
-  const { id } = useParams();
   const handleApplication = async (e) => {
     e.preventDefault();
+
+    if (!resume) {
+      toast.error("Please upload your resume before submitting.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
@@ -49,11 +54,11 @@ const Application = () => {
       setCoverLetter("");
       setPhone("");
       setAddress("");
-      setResume("");
+      setResume(null);
       toast.success(data.message);
       navigateTo("/job/getall");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error?.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -71,42 +76,59 @@ const Application = () => {
             placeholder="Your Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
           <input
             type="email"
             placeholder="Your Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
           <input
             type="number"
             placeholder="Your Phone Number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            required
           />
           <input
             type="text"
             placeholder="Your Address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            required
           />
           <textarea
             placeholder="CoverLetter..."
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
+            required
           />
           <div>
             <label
-              style={{ textAlign: "start", display: "block", fontSize: "20px" }}
+              style={{
+                textAlign: "start",
+                display: "block",
+                fontSize: "20px",
+                color: "var(--text-light)",
+                marginBottom: "10px",
+              }}
             >
-              Select Resume
+              Select Resume (PDF, JPG, PNG)
             </label>
             <input
               type="file"
-              accept=".pdf, .jpg, .png"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
               onChange={handleFileChange}
-              style={{ width: "100%" }}
+              style={{ width: "100%", color: "var(--text-light)" }}
+              required
             />
+            {resume && (
+              <p style={{ fontSize: "14px", marginTop: "8px", color: "#666" }}>
+                Selected File: {resume.name}
+              </p>
+            )}
           </div>
           <button type="submit">Send Application</button>
         </form>

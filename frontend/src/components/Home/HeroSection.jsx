@@ -33,8 +33,8 @@ const HeroSection = () => {
       <div className="heroSection">
         <div className="container">
           <div className="title">
-            <h1>Find a job that suits</h1>
-            <h1>your interests and skills</h1>
+            <h1>Find a job that <span style={{ color: "var(--radium-blue)" }}>suits</span></h1>
+            <h1>your <span style={{ color: "var(--radium-blue)" }}>interests</span> and <span style={{ color: "var(--radium-blue)" }}>skills</span></h1>
             <p>
               Discover job opportunities that match your skills and passions.
               Connect with employers seeking talent like yours for rewarding
