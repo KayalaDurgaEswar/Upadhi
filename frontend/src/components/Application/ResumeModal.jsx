@@ -79,7 +79,7 @@ const ResumeModal = ({ imageUrl, onClose }) => {
                   data={imageUrl}
                   type="application/pdf"
                   width={`${zoomLevel}%`}
-                  height="500px"
+            height="500px"
                   style={{ 
                     border: "none", 
                     display: isLoading ? "none" : "block" 

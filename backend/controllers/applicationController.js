@@ -82,10 +82,10 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
       console.log("Detected PDF file, using appropriate resource_type: auto");
     }
     
-    cloudinaryResponse = await cloudinary.uploader.upload(
-      resume.tempFilePath,
+      cloudinaryResponse = await cloudinary.uploader.upload(
+        resume.tempFilePath,
       uploadOptions
-    );
+      );
     
     console.log("Cloudinary upload result:", cloudinaryResponse.secure_url);
 
@@ -98,7 +98,7 @@ export const postApplication = catchAsyncErrors(async (req, res, next) => {
       user: req.user._id,
       role: "Job Seeker",
     };
-    
+
     const employerID = {
       user: jobDetails.postedBy,
       role: "Employer",
