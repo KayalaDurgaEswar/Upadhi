@@ -12,8 +12,6 @@
 /build
 /frontend/build
 /frontend/dist
-/frontend/.vite
-.vite
 
 # misc
 .DS_Store
