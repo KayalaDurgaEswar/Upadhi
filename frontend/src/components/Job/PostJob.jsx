@@ -3,6 +3,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Context } from "../../main";
+
 const PostJob = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -14,57 +15,86 @@ const PostJob = () => {
   const [salaryTo, setSalaryTo] = useState("");
   const [fixedSalary, setFixedSalary] = useState("");
   const [salaryType, setSalaryType] = useState("default");
+  const [loading, setLoading] = useState(false);
 
   const { isAuthorized, user } = useContext(Context);
 
+  // Reset form function
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setCategory("");
+    setCountry("");
+    setCity("");
+    setLocation("");
+    setSalaryFrom("");
+    setSalaryTo("");
+    setFixedSalary("");
+    setSalaryType("default");
+  };
+
   const handleJobPost = async (e) => {
     e.preventDefault();
-    if (salaryType === "Fixed Salary") {
-      setSalaryFrom("");
-      setSalaryFrom("");
-    } else if (salaryType === "Ranged Salary") {
-      setFixedSalary("");
-    } else {
-      setSalaryFrom("");
-      setSalaryTo("");
-      setFixedSalary("");
+    
+    if (salaryType === "default") {
+      toast.error("Please select a salary type");
+      return;
     }
-    await axios
-      .post(
+    
+    let jobData;
+    
+    if (salaryType === "Fixed Salary") {
+      if (!fixedSalary) {
+        toast.error("Please enter fixed salary");
+        return;
+      }
+      jobData = {
+        title,
+        description,
+        category,
+        country,
+        city,
+        location,
+        fixedSalary,
+      };
+    } else if (salaryType === "Ranged Salary") {
+      if (!salaryFrom || !salaryTo) {
+        toast.error("Please enter both salary range values");
+        return;
+      }
+      jobData = {
+        title,
+        description,
+        category,
+        country,
+        city,
+        location,
+        salaryFrom,
+        salaryTo,
+      };
+    }
+    
+    setLoading(true);
+    
+    try {
+      const res = await axios.post(
         "http://localhost:4000/api/v1/job/post",
-        fixedSalary.length >= 4
-          ? {
-              title,
-              description,
-              category,
-              country,
-              city,
-              location,
-              fixedSalary,
-            }
-          : {
-              title,
-              description,
-              category,
-              country,
-              city,
-              location,
-              salaryFrom,
-              salaryTo,
-            },
+        jobData,
         {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
           },
         }
-      )
-      .then((res) => {
-        toast.success(res.data.message);
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
+      );
+      toast.success(res.data.message);
+      // Reset form after successful submission
+      resetForm();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to post job");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const navigateTo = useNavigate();
@@ -84,10 +114,12 @@ const PostJob = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Job Title"
+                required
               />
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
+                required
               >
                 <option value="">Select Category</option>
                 <option value="Graphics & Design">Graphics & Design</option>
@@ -108,9 +140,6 @@ const PostJob = () => {
                 <option value="MEAN Stack Development">
                   MEAN STACK Development
                 </option>
-                <option value="MERN Stack Development">
-                  MERN STACK Development
-                </option>
                 <option value="Data Entry Operator">Data Entry Operator</option>
               </select>
             </div>
@@ -120,12 +149,14 @@ const PostJob = () => {
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="Country"
+                required
               />
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="City"
+                required
               />
             </div>
             <input
@@ -133,11 +164,13 @@ const PostJob = () => {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Location"
+              required
             />
             <div className="salary_wrapper">
               <select
                 value={salaryType}
                 onChange={(e) => setSalaryType(e.target.value)}
+                required
               >
                 <option value="default">Select Salary Type</option>
                 <option value="Fixed Salary">Fixed Salary</option>
@@ -152,6 +185,7 @@ const PostJob = () => {
                     placeholder="Enter Fixed Salary"
                     value={fixedSalary}
                     onChange={(e) => setFixedSalary(e.target.value)}
+                    required
                   />
                 ) : (
                   <div className="ranged_salary">
@@ -160,12 +194,14 @@ const PostJob = () => {
                       placeholder="Salary From"
                       value={salaryFrom}
                       onChange={(e) => setSalaryFrom(e.target.value)}
+                      required
                     />
                     <input
                       type="number"
                       placeholder="Salary To"
                       value={salaryTo}
                       onChange={(e) => setSalaryTo(e.target.value)}
+                      required
                     />
                   </div>
                 )}
@@ -176,8 +212,11 @@ const PostJob = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Job Description"
+              required
             />
-            <button type="submit">Create Job</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Job"}
+            </button>
           </form>
         </div>
       </div>

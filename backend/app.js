@@ -8,9 +8,13 @@ import cors from "cors";
 import { errorMiddleware } from "./middlewares/error.js";
 import cookieParser from "cookie-parser";
 import fileUpload from "express-fileupload";
+import cloudinaryConfig from "./config/config.js";
 
 // ✅ Load environment variables
 config({ path: "./config/config.env" });
+
+// ✅ Configure Cloudinary
+cloudinaryConfig();
 
 const app = express();
 

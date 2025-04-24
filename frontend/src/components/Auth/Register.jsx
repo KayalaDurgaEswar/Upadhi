@@ -15,11 +15,20 @@ const Register = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const { isAuthorized, setIsAuthorized, user, setUser } = useContext(Context);
+  const { isAuthorized, setIsAuthorized } = useContext(Context);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    // Form validation
+    if (!name || !email || !phone || !password || !role) {
+      return toast.error("Please fill all the fields");
+    }
+    
+    setLoading(true);
+    
     try {
       const { data } = await axios.post(
         "http://localhost:4000/api/v1/user/register",
@@ -39,14 +48,16 @@ const Register = () => {
       setRole("");
       setIsAuthorized(true);
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Registration error:", error);
+      toast.error(error.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   if(isAuthorized){
     return <Navigate to={'/'}/>
   }
-
 
   return (
     <>
@@ -56,11 +67,11 @@ const Register = () => {
             <h3>Register your account</h3>
             <img src="/Upadhi-logo.png" alt="Upadhi Logo" />
           </div>
-          <form>
+          <form onSubmit={handleRegister}>
             <div className="inputTag">
               <label>Register As</label>
               <div>
-                <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <select value={role} onChange={(e) => setRole(e.target.value)} required>
                   <option value="">Select Role</option>
                   <option value="Employer">Employer</option>
                   <option value="Job Seeker">Job Seeker</option>
@@ -76,6 +87,7 @@ const Register = () => {
                   placeholder="Enter your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  required
                 />
                 <FaPencilAlt />
               </div>
@@ -88,6 +100,7 @@ const Register = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
                 <MdOutlineMailOutline />
               </div>
@@ -100,6 +113,7 @@ const Register = () => {
                   placeholder="Enter your phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  required
                 />
                 <FaPhoneFlip />
               </div>
@@ -112,12 +126,13 @@ const Register = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
                 <RiLock2Fill />
               </div>
             </div>
-            <button type="submit" onClick={handleRegister}>
-              Register
+            <button type="submit" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
             </button>
             <Link to={"/login"}>Login Now</Link>
           </form>
